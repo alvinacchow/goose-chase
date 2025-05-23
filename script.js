@@ -5,7 +5,11 @@ let isGooseMoving = false;
 let isInteracting = false;
 let frameIndex = 0;
 const audio = document.getElementById('bg-audio');
-audio.volume = 0.5; 
+audio.volume = 0.5;
+let lastWrapTime = 0;
+const wrapCooldown = 200;  
+let postWrapCooldown = false;
+const postWrapDuration = 300; 
 
 const gooseFrames = [
     'goose-1.png',
@@ -29,19 +33,72 @@ function centerGoose() {
     goose.style.top = `${centerY}px`;
 }
 
+
 function animateGooseStep() {
     goose.style.backgroundImage = `url('${gooseFrames[frameIndex]}')`;
     frameIndex = (frameIndex + 1) % gooseFrames.length;
 }
 
+
+function resetGooseToOtherSide(side) {
+
+  const gooseWidth = goose.offsetWidth;
+  const gooseHeight = goose.offsetHeight;
+
+  switch (side) {
+    case 0:
+      goose.style.left = `-50px`;
+      goose.style.top = `${goose.offsetTop}px`;
+      break;
+    case 1:
+      goose.style.left = `${window.innerWidth + 50}px`;
+      goose.style.top = `${goose.offsetTop}px`;
+      break;
+    case 2:
+      goose.style.left = `${goose.offsetLeft}px`;
+      goose.style.top = `-50px`;
+      break;
+    case 3:
+      goose.style.left = `${goose.offsetLeft}px`;
+      goose.style.top = `${window.innerHeight + 50}px`;
+      break;
+  }
+}
+
+
+
+function isGooseOffScreen() {
+  const rect = goose.getBoundingClientRect();
+  const completelyLeft = rect.right < 0;
+  const completelyRight = rect.left > window.innerWidth;
+  const completelyAbove = rect.bottom < 0;
+  const completelyBelow = rect.top > window.innerHeight;
+  if (completelyRight) {
+    return 0;
+  }
+  else if (completelyLeft) {
+    return 1;
+  }
+  else if (completelyBelow) {
+    return 2;
+  }
+  else if (completelyAbove) {
+    return 3;
+  }
+  return -1;
+}
+
+
 function getRandomColor() {
-      const r = Math.floor(Math.random() * 256);
-      const g = Math.floor(Math.random() * 256);
-      const b = Math.floor(Math.random() * 256);
-      return `rgb(${r}, ${g}, ${b})`;
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    return `rgb(${r}, ${g}, ${b})`;
 }
 
 function handlePointerMove(x, y) {
+  if (postWrapCooldown) return;
+
   const gooseSize = goose.offsetWidth;
   const gooseX = goose.offsetLeft + gooseSize / 2;
   const gooseY = goose.offsetTop + gooseSize / 2;
@@ -53,18 +110,16 @@ function handlePointerMove(x, y) {
   if (distance < 150) {
     isGooseMoving = true;
     const angle = Math.atan2(dy, dx);
-    const newX = goose.offsetLeft + Math.cos(angle) * moveDistance;
-    const newY = goose.offsetTop + Math.sin(angle) * moveDistance;
+    let newX = goose.offsetLeft + Math.cos(angle) * moveDistance;
+    let newY = goose.offsetTop + Math.sin(angle) * moveDistance;
 
-    const maxX = window.innerWidth - gooseSize;
-    const maxY = window.innerHeight - gooseSize;
-
-    goose.style.left = `${Math.min(Math.max(newX, 0), maxX)}px`;
-    goose.style.top = `${Math.min(Math.max(newY, 0), maxY)}px`;
+    goose.style.left = `${newX}px`;
+    goose.style.top = `${newY}px`;
   } else {
     isGooseMoving = false;
   }
 }
+
 
 document.addEventListener('mousemove', (event) => {
   handlePointerMove(event.clientX, event.clientY);
@@ -88,6 +143,17 @@ setInterval(() => {
         animateGooseStep();
     }
 }, 50); 
+
+setInterval(() => {
+  const now = Date.now();
+  if (now - lastWrapTime < wrapCooldown) return;
+
+  let indicator = isGooseOffScreen();
+  if (indicator > -1) {
+    lastWrapTime = now; // Update the wrap time
+    resetGooseToOtherSide(indicator);
+  }
+}, 100);
 
 document.addEventListener('click', enableAudio);
 document.addEventListener('mousemove', enableAudio);
