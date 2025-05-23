@@ -2,13 +2,22 @@ const goose = document.getElementById('goose');
 const gooseSize = 100; 
 const moveDistance = window.innerWidth * 0.03;
 let isGooseMoving = false;
+let isInteracting = false;
+let frameIndex = 0;
+const audio = document.getElementById('bg-audio');
+audio.volume = 0.5; 
 
 const gooseFrames = [
     'goose-1.png',
     'goose-2.png',
     'goose-3.png'
 ];
-let frameIndex = 0;
+
+const enableAudio = () => {
+    audio.play();
+    document.removeEventListener('click', enableAudio);
+    document.removeEventListener('mousemove', enableAudio);
+};
 
 function getGooseSize() {
     return goose.offsetWidth; 
@@ -82,7 +91,27 @@ setInterval(() => {
     }
 }, 50); 
 
+document.addEventListener('click', enableAudio);
+document.addEventListener('mousemove', enableAudio);
 window.addEventListener('DOMContentLoaded', centerGoose);
 window.addEventListener('resize', () => {
     centerGoose();
+});
+window.addEventListener('mouseout', (event) => {
+  if (!event.relatedTarget || event.relatedTarget.nodeName === "HTML") {
+    isGooseMoving = false;
+  }
+});
+document.addEventListener('touchend', () => {
+  isGooseMoving = false;
+});
+document.addEventListener('touchcancel', () => {
+  isGooseMoving = false;
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    audio.pause();
+  } else {
+    audio.play();
+  }
 });
