@@ -1,0 +1,25 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: hidden;
+}
+
+#game {
+    width: 100vw;
+    height: 100vh;
+    border: 2px solid black;
+    position: relative; 
+    overflow: hidden;
+}
+
+#goose {
+    height: 15vmin;
+    width: 15vmin;
+    background-image: url('goose-1.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    position: absolute;
+    transition: left 0.1s ease, top 0.1s ease;
+}
