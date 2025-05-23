@@ -15,8 +15,6 @@ const gooseFrames = [
 
 const enableAudio = () => {
     audio.play();
-    document.removeEventListener('click', enableAudio);
-    document.removeEventListener('mousemove', enableAudio);
 };
 
 function getGooseSize() {
